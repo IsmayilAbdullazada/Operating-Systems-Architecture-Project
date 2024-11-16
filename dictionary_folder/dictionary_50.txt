@@ -1,0 +1,50 @@
+coffee;café
+ugly;laid
+help;aider
+grateful;reconnaissant
+time;temps
+sea;mer
+story;histoire
+bored;ennuyé
+child;enfant
+cost;coûter
+camera;caméra
+woman;femme
+angry;en colère
+team;équipe
+confused;confus
+car;voiture
+sleep;dormir
+dance;danser
+hear;entendre
+passport;passeport
+blood;sang
+sick;malade
+hand;main
+meat;viande
+teacher;professeur
+cheap;bon marché
+bored;ennuyé
+nervous;nerveux
+country;pays
+economy;économie
+surprised;surpris
+hand;main
+cat;chat
+cheap;bon marché
+angry;en colère
+art;art
+sea;mer
+horse;cheval
+street;rue
+elephant;éléphant
+sea;mer
+story;histoire
+finish;terminer
+house;maison
+old;vieux
+beach;plage
+sand;sable
+battery;batterie
+hospital;hôpital
+word;mot
