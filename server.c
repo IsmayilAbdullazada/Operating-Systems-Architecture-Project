@@ -1,36 +1,45 @@
+#include <dirent.h>
+#include <errno.h>
+#include "array.h"
+#include <dirent.h>
+#include <limits.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <dirent.h> // For directory operations
+#include <unistd.h> // For sleep(), getpid(), pause()
 
 
-#define DICT_RELOAD_INTERVAL_SEC 3
+#ifndef PATH_MAX
+#define PATH_MAX 1012  // Maximum path length
+#endif
 
-#define MAX_WORDS 1000
-#define MAX_FILENAME_LENGTH 512
-#define MAX_FILES 100 // Maximum number of files to track
+#define DICT_RELOAD_INTERVAL_SEC 10  // Interval for reloading the dictionary in seconds
 
+Array dictionary;  // Resizable array for WordPairs
+Array knownFiles;  // Resizable array for file paths
+
+
+// WordPair structure for storing English-French word pairs
 typedef struct {
-    char english[MAX_WORDS];
-    char french[MAX_WORDS];
+    char *english; // Dynamically allocated string for English word
+    char *french;  // Dynamically allocated string for French word
 } WordPair;
 
-WordPair dictionary[MAX_WORDS];
-
-int wordCount = 0;
-char knownFiles[MAX_FILES][MAX_FILENAME_LENGTH];
-int knownFileCount = 0;
+// Function to free WordPairs
+void free_wordpair(Array *arr) {
+    for (size_t i = 0; i < arr->size; i++) {
+        WordPair *pair = (WordPair *)get_from_array(arr, i);
+        free(pair->english);
+        free(pair->french);
+    }
+}
 
 // Function to check if a file is already known
 int is_known_file(const char *filename) {
-    for (int i = 0; i < knownFileCount; i++) {
-        if (strcmp(knownFiles[i], filename) == 0) {
+    for (size_t i = 0; i < knownFiles.size; i++) {
+        char *knownFile = *(char **)get_from_array(&knownFiles, i); // Use pointer dereference correctly
+        if (strcmp(knownFile, filename) == 0) {
             return 1;
         }
     }
@@ -39,10 +48,19 @@ int is_known_file(const char *filename) {
 
 // Function to mark a file as known
 void add_to_known_files(const char *filename) {
-    if (knownFileCount < MAX_FILES) {
-        strncpy(knownFiles[knownFileCount], filename, MAX_FILENAME_LENGTH - 1);
-        knownFiles[knownFileCount][MAX_FILENAME_LENGTH - 1] = '\0';
-        knownFileCount++;
+    char *filePath = strdup(filename); // Create a copy of the filename
+    if (!filePath) {
+        perror("Failed to allocate memory for filename");
+        exit(EXIT_FAILURE);
+    }
+    add_to_array(&knownFiles, &filePath);
+}
+
+// Function to free KnownFiles
+void free_known_files(Array *arr) {
+    for (size_t i = 0; i < arr->size; i++) {
+        char *filePath = *(char **)get_from_array(arr, i);
+        free(filePath);
     }
 }
 
@@ -50,21 +68,19 @@ void add_to_known_files(const char *filename) {
 void load_file(const char *filepath) {
     FILE *file = fopen(filepath, "r");
     if (file != NULL) {
-        char line[101];
+        char line[1024];
         while (fgets(line, sizeof(line), file) != NULL) {
-            char *token = strtok(line, ";");
-            if (token != NULL) {
-                strcpy(dictionary[wordCount].english, token);
-                token = strtok(NULL, ";");
-                if (token != NULL) {
-                    strcpy(dictionary[wordCount].french, token);
-                    // Remove trailing newline from French word:
-                    size_t len = strlen(dictionary[wordCount].french);
-                    if (len > 0 && dictionary[wordCount].french[len - 1] == '\n') {
-                        dictionary[wordCount].french[len - 1] = '\0';
-                    }
-                    wordCount++;
-                }
+            WordPair pair;
+            char *english = strtok(line, ";");
+            char *french = strtok(NULL, "\n");
+
+            if (english && french) {
+                // Allocate and copy strings
+                pair.english = strdup(english);
+                pair.french = strdup(french);
+
+                // Add to the dictionary
+                add_to_array(&dictionary, &pair);
             }
         }
         fclose(file);
@@ -73,22 +89,21 @@ void load_file(const char *filepath) {
     }
 }
 
-
 // Function to load new dictionary files from the folder
 void load_dictionary(const char *folder_path) {
     DIR *dir;
     struct dirent *ent;
-    char filepath[MAX_FILENAME_LENGTH];
+    char filepath[PATH_MAX];
 
     if ((dir = opendir(folder_path)) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue; // Skip . and ..
+            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
 
-            snprintf(filepath, MAX_FILENAME_LENGTH, "%s/%s", folder_path, ent->d_name);
+            snprintf(filepath, PATH_MAX, "%s/%s", folder_path, ent->d_name);
             if (!is_known_file(filepath)) {
                 printf("Loading new file: %s\n", filepath);
                 load_file(filepath);
-                add_to_known_files(filepath); // Mark the file as known
+                add_to_known_files(filepath);
             }
         }
         closedir(dir);
@@ -98,14 +113,16 @@ void load_dictionary(const char *folder_path) {
     }
 }
 
-void handle_signal(int sig) {
-    if (wordCount == 0) return; // Nothing to translate
 
-    int randomIndex = rand() % wordCount;
+
+void handle_signal(int sig) {
+
+    int randomIndex = rand() % dictionary.size;
+    WordPair *pair = (WordPair *)get_from_array(&dictionary, randomIndex);
     if (sig == SIGUSR1) {
-        printf("English: %s, French: %s\n", dictionary[randomIndex].english, dictionary[randomIndex].french);
+        printf("English: %s, French: %s\n", pair->english, pair->french);
     } else if (sig == SIGUSR2) {
-        printf("French: %s, English: %s\n", dictionary[randomIndex].french, dictionary[randomIndex].english);
+        printf("French: %s, English: %s\n", pair->french, pair->english);
     }
 }
 
@@ -122,6 +139,10 @@ void *dictionary_loader(void *arg) {
 }
 
 int main() {
+    init_array(&dictionary, sizeof(WordPair), 10); // Initialize dictionary
+    init_array(&knownFiles, sizeof(char *), 10);   // Initialize known files array
+
+
     printf("Process ID: %d\n", getpid());
     srand(time(NULL));  // Seed the random number generator
 
