@@ -1,0 +1,12 @@
+move;bouger
+excited;excité
+cow;vache
+monkey;singe
+wait;attendre
+park;parc
+cost;coûter
+beach;plage
+juice;jus
+answer;réponse
+rabbit;lapin
+friend;ami

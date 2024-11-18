@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <time.h>
 
 int main(int argc, char *argv[]) {
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 100; i++) {
         int signal_to_send = (rand() % 2 == 0) ? SIGUSR1 : SIGUSR2;
         kill(server_pid, signal_to_send);
-        usleep(100000); // Small delay
+        usleep(20000); // Sleep for 10 milliseconds (10,000 microseconds)
     }
 
     return 0;

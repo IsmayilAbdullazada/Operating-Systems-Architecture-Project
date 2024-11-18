@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +8,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <dirent.h> // For directory operations
+
+
+#define DICT_RELOAD_INTERVAL_SEC 3
 
 #define MAX_WORDS 1000
 #define MAX_FILENAME_LENGTH 512
@@ -18,6 +22,7 @@ typedef struct {
 } WordPair;
 
 WordPair dictionary[MAX_WORDS];
+
 int wordCount = 0;
 char knownFiles[MAX_FILES][MAX_FILENAME_LENGTH];
 int knownFileCount = 0;
@@ -104,24 +109,39 @@ void handle_signal(int sig) {
     }
 }
 
+
+
+// Thread function to periodically load the dictionary
+void *dictionary_loader(void *arg) {
+    const char *folder = (const char *)arg;
+    while (1) {
+        load_dictionary(folder);  // Load the dictionary
+        sleep(DICT_RELOAD_INTERVAL_SEC);  // Wait for the specified interval
+    }
+    return NULL;  // Not used but required by pthread
+}
+
 int main() {
+    printf("Process ID: %d\n", getpid());
     srand(time(NULL));  // Seed the random number generator
 
-    // Load the dictionary from the specified folder
-    load_dictionary("dictionary_folder");
+    // Load the dictionary from the specified folder once initially
+    const char *dictionary_folder = "dictionary_folder";
+    load_dictionary(dictionary_folder);
 
+    // Set up signal handlers
     signal(SIGUSR1, handle_signal);
     signal(SIGUSR2, handle_signal);
 
-    time_t last_checked = time(NULL);  // Store the last check time
+    // Create a separate thread for periodic dictionary loading
+    pthread_t loader_thread;
+    if (pthread_create(&loader_thread, NULL, dictionary_loader, (void *)dictionary_folder) != 0) {
+        perror("Failed to create dictionary loader thread");
+        return 1;
+    }
 
-    // Keep the server running
+    // Main server loop to handle signals
     while (1) {
-        // Check the folder for updates every second
-        if (time(NULL) - last_checked >= 1) {
-            load_dictionary("dictionary_folder");
-            last_checked = time(NULL);
-        }
         pause();  // Wait for signals
     }
 
