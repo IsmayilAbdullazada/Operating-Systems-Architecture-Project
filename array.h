@@ -17,6 +17,7 @@ typedef struct {
 void init_array(Array *arr, size_t element_size, size_t initial_capacity);
 void free_array(Array *arr);
 void add_to_array(Array *arr, void *element);
+void remove_from_array(Array *arr, size_t index);
 void *get_from_array(Array *arr, size_t index);
 
 #endif // GENERIC_ARRAY_H

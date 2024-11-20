@@ -9,7 +9,6 @@ beach;plage
 juice;jus
 answer;réponse
 rabbit;lapin
-friend;ami
 push;pousser
 hot;chaud
 run;courir
@@ -140,7 +139,6 @@ car;voiture
 new;nouveau
 color;couleur
 coffee;café
-friend;ami
 country;pays
 child;enfant
 radio;radio

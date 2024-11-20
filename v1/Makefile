@@ -1,13 +1,13 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = 
+CFLAGS = -Wall -Wextra -g -lpthread
 
 # Source files
 CLIENT_SRC = client.c
-SERVER_SRC = server.c array.c
+SERVER_SRC = server.c ../array.c ../dictionary_loader.c ../wordpair.c
 
 # Header files
-HEADERS = array.h
+HEADERS = ../array.h ../dictionary_loader.h ../wordpair.h
 
 # Targets
 CLIENT_EXEC = client
@@ -17,7 +17,7 @@ SERVER_EXEC = server
 all: $(CLIENT_EXEC) $(SERVER_EXEC)
 
 # Compile client executable
-$(CLIENT_EXEC): $(CLIENT_SRC)
+$(CLIENT_EXEC): $(CLIENT_SRC) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $<
 
 # Compile server executable

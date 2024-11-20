@@ -34,6 +34,7 @@ static void resize_array(Array *arr) {
 
 // Add an element to the Array
 void add_to_array(Array *arr, void *element) {
+    // printf("Adding WordPair to dictionary\n");  // Debugging line
     if (arr->size == arr->capacity) {
         resize_array(arr);
     }
@@ -48,4 +49,21 @@ void *get_from_array(Array *arr, size_t index) {
         return NULL;
     }
     return (char *)arr->data + (index * arr->element_size);
+}
+
+// Remove an element from the Array at the specified index
+void remove_from_array(Array *arr, size_t index) {
+    if (index >= arr->size) {
+        fprintf(stderr, "Index out of bounds\n");
+        return;
+    }
+
+    // Calculate the starting point for memmove
+    void *start = (char *)arr->data + ((index + 1) * arr->element_size);
+    void *dest = (char *)arr->data + (index * arr->element_size);
+
+    size_t bytes_to_move = (arr->size - index - 1) * arr->element_size;
+    memmove(dest, start, bytes_to_move);
+
+    arr->size--;
 }
