@@ -1,7 +1,7 @@
 #ifndef MESSAGE_QUEUE_H
 #define MESSAGE_QUEUE_H
 
-#include "array.h"
+#include "message.h"
 
 void init_message_queue();
 void cleanup_message_queue();

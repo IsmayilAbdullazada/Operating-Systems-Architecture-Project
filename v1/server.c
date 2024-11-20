@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 
 #define DICTIONARY_FOLDER "../dictionary_folder" // Path to the dictionary folder
 

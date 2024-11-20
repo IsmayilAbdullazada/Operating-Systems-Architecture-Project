@@ -69,16 +69,6 @@ void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFil
     }
 }
 
-// Thread function to periodically load the dictionary
-void *dictionary_loader(void *arg, Array *dictionary, Array *knownFiles) {
-    const char *folder = (const char *)arg;
-    while (1) {
-        load_dictionary(folder, dictionary, knownFiles);  // Load the dictionary
-        sleep(DICT_RELOAD_INTERVAL_SEC);  // Wait for the specified interval
-    }
-    return NULL;  // Not used but required by pthread
-}
-
 int is_known_file(const char *filename, Array *knownFiles) {
     for (size_t i = 0; i < knownFiles->size; i++) {
         char *knownFile = *(char **)get_from_array(knownFiles, i); // Use pointer dereference correctly
@@ -136,7 +126,6 @@ void free_known_files(Array *knownFiles) {
 }
 
 void print_dictionary(Array *dictionary) {
-  printf("Printing dict: %d\n", dictionary ? 1:0);
     for (size_t i = 0; i < dictionary->size; i++) {
         WordPair *pair = (WordPair *)get_from_array(dictionary, i);
         printf("WordPair %zu: %s -> %s\n", i, pair->english, pair->french);

@@ -7,8 +7,6 @@
 static void *shared_memory = NULL;
 static int shm_id;
 
-pthread_mutex_t dictionary_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 void init_shared_memory(Array *dictionary, size_t element_size, size_t capacity) {
     shm_id = shmget(SHARED_MEM_KEY, capacity * element_size, IPC_CREAT | 0666);
     if (shm_id == -1) {

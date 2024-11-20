@@ -1,52 +1,67 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <dirent.h>
-#include <unistd.h>
-#include "dictionary.h"
+#include "../dictionary_loader.h"
+#include "../array.h"
+#include "message.h"
 #include "message_queue.h"
+#include <unistd.h>
+#include <stdio.h>
 
 void *translation_writer(void *arg) {
     const char *folder = (const char *)arg;
 
+    // Initialize known files list
+    Array knownFiles;
+    init_array(&knownFiles, sizeof(char *), 10);
+
+    // Periodically scan the folder for new files
     while (1) {
-        DIR *dir = opendir(folder);
-        struct dirent *ent;
-        char filepath[PATH_MAX];
+        // Use `load_dictionary` to handle file scanning
+        Array tempDictionary;
+        init_array(&tempDictionary, sizeof(WordPair), 100);
 
-        if (dir == NULL) {
-            perror("Failed to open directory");
-            break;
+        // Log folder scanning activity
+        printf("Writer: Scanning folder for new dictionary files...\n");
+
+        // Simulate loading dictionary from files (add sleep to simulate delay)
+        load_dictionary(folder, &tempDictionary, &knownFiles);
+
+        // Process the word pairs into messages
+        for (size_t i = 0; i < tempDictionary.size; i++) {
+            WordPair *pair = (WordPair *)get_from_array(&tempDictionary, i);
+
+            // Create a message
+            Message msg;
+
+            // Randomly decide whether it's English-to-French (msg_type = 1) or French-to-English (msg_type = 2)
+            if (rand() % 2 == 0) {
+                msg.msg_type = 1; // English-to-French
+            } else {
+                msg.msg_type = 2; // French-to-English
+            }
+            msg.pair.english = strdup(pair->english);
+            msg.pair.french = strdup(pair->french);
+
+            // Log the message about to be sent
+            printf("Writer: Sending message: '%s' -> '%s' (Direction: %s)\n", 
+                   msg.pair.english, msg.pair.french, 
+                   (msg.msg_type == 1 ? "English-to-French" : "French-to-English"));
+
+            // Send the message to the queue
+            send_message(&msg);
+
+            // Sleep after sending each message (simulating delay in processing)
+            sleep(1); // Adjust as needed
         }
 
-        while ((ent = readdir(dir)) != NULL) {
-            if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
+        // Free temporary dictionary storage
+        free_array(&tempDictionary);
 
-            snprintf(filepath, PATH_MAX, "%s/%s", folder, ent->d_name);
-            FILE *file = fopen(filepath, "r");
-            if (!file) {
-                perror("Error opening file");
-                continue;
-            }
-
-            char line[1024];
-            while (fgets(line, sizeof(line), file)) {
-                char *english = strtok(line, ";");
-                char *french = strtok(NULL, "\n");
-                if (english && french) {
-                    Message msg;
-                    msg.msg_type = rand() % 2 == 0 ? 1 : 2; // Random direction
-                    msg.pair.english = strdup(english);
-                    msg.pair.french = strdup(french);
-                    send_message(&msg);
-                }
-            }
-            fclose(file);
-        }
-        closedir(dir);
-
-        sleep(DICT_RELOAD_INTERVAL_SEC); // Wait for the next scan
+        // Wait for the next scan interval
+        printf("Writer: Waiting for the next scan interval...\n");
+        sleep(DICT_RELOAD_INTERVAL_SEC); // Sleep to simulate delay between folder scans
     }
+
+    // Free resources used for tracking known files
+    free_known_files(&knownFiles);
 
     return NULL;
 }

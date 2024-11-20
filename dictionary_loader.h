@@ -15,8 +15,6 @@ void load_file(const char *filepath, Array *dictionary);
 
 void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFiles);
 
-void *dictionary_loader(void *arg, Array *dictionary, Array *knownFiles);
-
 // Check if a file is already known
 int is_known_file(const char *filename, Array *knownFiles);
 
