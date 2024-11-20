@@ -4,10 +4,10 @@ CFLAGS = -Wall -Wextra -g -lpthread
 
 # Source files
 CLIENT_SRC = client.c
-SERVER_SRC = server.c ../array.c ../dictionary_loader.c ../wordpair.c
+SERVER_SRC = server.c ../array.c ../dictionary_loader.c ../wordpair.c ../object.c ../obj_string.c
 
 # Header files
-HEADERS = ../array.h ../dictionary_loader.h ../wordpair.h
+HEADERS = ../array.h ../dictionary_loader.h ../wordpair.h  ../object.h ../obj_string.h
 
 # Targets
 CLIENT_EXEC = client
@@ -22,7 +22,7 @@ $(CLIENT_EXEC): $(CLIENT_SRC) $(HEADERS)
 
 # Compile server executable
 $(SERVER_EXEC): $(SERVER_SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SERVER_SRC)
+	$(CC) $(CFLAGS) -o $@ $(SERVER_SRC) 
 
 # Clean up build files
 clean:
