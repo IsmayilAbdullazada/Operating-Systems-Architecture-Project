@@ -1,0 +1,5 @@
+coffee;café
+ugly;laid
+help;aider
+grateful;reconnaissant
+time;temps
