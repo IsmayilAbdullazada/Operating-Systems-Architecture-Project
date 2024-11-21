@@ -18,6 +18,7 @@ typedef struct Array {
 void Array_init(Array *arr, size_t initial_capacity);
 Array *Array_new(size_t initial_capacity);
 void Array_free(Array *arr);
+void Array_free_shallow(Array *arr);
 void Array_add(Array *arr, Object *element);
 void Array_remove_at(Array *arr, size_t index);
 void Array_filter(Array *arr, int (*condition)(const Object *, const void *), const void *context);

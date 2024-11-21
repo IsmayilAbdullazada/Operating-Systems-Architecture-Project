@@ -54,7 +54,7 @@ WordPair *WordPair_new(const char *english, const char *french, const char *sour
 
 int cmpSourceFiles(const Object *a, const void *b) {
     const WordPair *pair = (const WordPair *)a;
-    const String *sourceFile = (const String *)b;
-    return strcmp(pair->sourceFile, sourceFile->data);
+    const char *sourceFile = (const char *)b;
+    return strcmp(pair->sourceFile, sourceFile);
     
 }

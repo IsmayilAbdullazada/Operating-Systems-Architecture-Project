@@ -15,7 +15,6 @@ void load_file(const char *filepath, Array *dictionary);
 
 void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFiles);
 
-void free_file_path(void *element);
 
 // void print_dictionary(Array *dictionary);
 

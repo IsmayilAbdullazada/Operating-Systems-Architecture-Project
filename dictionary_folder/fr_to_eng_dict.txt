@@ -1,0 +1,9 @@
+histoire;story
+terminer;finish
+maison;house
+vieux;old
+plage;beach
+sable;sand
+batterie;battery
+hôpital;hospital
+mot;word

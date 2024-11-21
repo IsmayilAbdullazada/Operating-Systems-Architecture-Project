@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-// String-specific free method
 void String_free(Object *self) {
+    if (!self) return; // Handle NULL pointer gracefully
     String *str = (String *)self; // Cast to derived type
-    free(str->data);
-    Object_free(self); // Call base free method
+    if (str->data) {
+        free(str->data); // Free the string data
+        str->data = NULL; // Avoid dangling pointer
+    }
+    Object_free(self); // Call base free method (frees `self`)
 }
 
 
@@ -25,6 +27,8 @@ void String_init(String *self, const char *data) {
     self->base.free = String_free; // Override the free method
     self->base.to_string = String_to_string; // Override the to_string method
     self->base.equal = String_equal; // Override the equal method
+    self->data = NULL; // Initialize the data pointer
+
     self->data = strdup(data); // Copy the string
     if (!self->data) {
         perror("Failed to allocate memory for String");

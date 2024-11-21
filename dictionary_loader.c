@@ -17,6 +17,9 @@ void load_file(const char *filepath, Array *dictionary) {
                 WordPair* wp = WordPair_new(english, french, filepath);
 
                 Array_add(dictionary, (Object*) wp);
+            } else {
+                fprintf(stderr, "Invalid line in file: %s\n", line);
+
             }
         }
         fclose(file);
@@ -60,7 +63,7 @@ void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFil
                 printf("File removed: %s\n", knownFileString);
 
                 // Remove words from the dictionary associated with the file
-                Array_filter(dictionary, cmpSourceFiles, knownFile);
+                Array_filter(dictionary, cmpSourceFiles, knownFileString);
 
                 // Remove from knownFiles
                 Array_remove_at(knownFiles, i);
@@ -79,10 +82,7 @@ void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFil
     // free((void *)dictionaryString);
 }
 
-void free_file_path(void *element) {
-    char *filePath = *(char **)element; // Dereference to get the file path pointer
-    free(filePath); // Free the dynamically allocated file path
-}
+\
 
 // void print_dictionary(Array *dictionary) {
 //     for (size_t i = 0; i < dictionary->size; i++) {

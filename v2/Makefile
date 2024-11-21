@@ -2,26 +2,41 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -lpthread
 
-# Source files for the server
-SERVER_SRC = main.c ../array.c ../dictionary_loader.c ../wordpair.c shared_memory.c message_queue.c
+# Source files
+SRCS = main.c reader_thread.c writer_thread.c ../array.c ../obj_string.c ../dictionary_loader.c ../wordpair.c ../object.c
+
+# Object files
+OBJS = $(SRCS:.c=.o)
 
 # Header files
-HEADERS = ../array.h ../dictionary_loader.h ../wordpair.h shared_memory.h message_queue.h message.h
+HEADERS = reader_thread.h writer_thread.h shared.h message.h shared_array.h ../array.h ../obj_string.h ../dictionary_loader.h ../wordpair.h ../object.h
 
-# Target executable
-SERVER_EXEC = server
+# Output executable
+TARGET = main
+
+
+export DICTIONARY_FOLDER=../dictionary_folder
 
 # Default target
-all: $(SERVER_EXEC)
+all: $(TARGET)
 
-# Compile server executable
-$(SERVER_EXEC): $(SERVER_SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SERVER_SRC)
+# Build the main executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+# Compile source files into object files
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Clean up build files
 clean:
-	@echo "Cleaning up..."
-	rm -f $(SERVER_EXEC) *.o
+	rm -f $(OBJS) $(TARGET)
 
-# Phony targets
-.PHONY: all clean
+# Run the program (optional)
+run: $(TARGET)
+	./$(TARGET)
+
+
+# Run the program with valgrind
+valgrind: $(TARGET)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET)

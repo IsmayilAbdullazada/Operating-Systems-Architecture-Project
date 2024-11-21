@@ -36,6 +36,24 @@ void Array_free(Array *arr) {
     free(arr);
 }
 
+
+
+// Free the Array without freeing the elements
+void Array_free_shallow(Array *arr) {
+    if (!arr || !arr->data) {
+        return; // Handle null or uninitialized arrays gracefully
+    }
+
+    // Free the array of Object pointers itself
+    free(arr->data);
+
+    // Reset the Array structure
+    arr->data = NULL;
+    arr->size = 0;
+    arr->capacity = 0;
+    free(arr);
+}
+
 // Resize the Array when full
 static void resize_array(Array *arr) {
     size_t new_capacity = arr->capacity * 2;
