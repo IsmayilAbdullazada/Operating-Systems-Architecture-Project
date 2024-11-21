@@ -1,10 +1,10 @@
 #include "dictionary_loader.h"
-// #include "wordpair.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h> // For `access()`
+#include <unistd.h>
+#include "obj_string.h"
 
 void load_file(const char *filepath, Array *dictionary) {
     FILE *file = fopen(filepath, "r");
@@ -13,10 +13,10 @@ void load_file(const char *filepath, Array *dictionary) {
         while (fgets(line, sizeof(line), file) != NULL) {
             char *english = strtok(line, ";");
             char *french = strtok(NULL, "\n");
-
             if (english && french) {
-                WordPair pair = create_wordpair(english, french, filepath);
-                add_to_array(dictionary, &pair);
+                WordPair* wp = WordPair_new(english, french, filepath);
+
+                Array_add(dictionary, (Object*) wp);
             }
         }
         fclose(file);
@@ -30,35 +30,40 @@ void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFil
     DIR *dir;
     struct dirent *ent;
     char filepath[PATH_MAX];
+    String *str;
 
     if ((dir = opendir(folder_path)) != NULL) {
         // Load new files from the folder
         while ((ent = readdir(dir)) != NULL) {
             if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
-            // printf("%s\n", ent->d_name);
             snprintf(filepath, PATH_MAX, "%s/%s", folder_path, ent->d_name);
 
-            if (!is_known_file(filepath, knownFiles)) {
+            str = String_new(filepath);
+
+            if (!Array_in(knownFiles, (Object *)str)) {
                 printf("Loading new file: %s\n", filepath);
                 load_file(filepath, dictionary);
-                add_to_known_files(filepath, knownFiles);
+                Array_add(knownFiles, (Object *)str);
+            } else {
+                String_free((Object*) str);
             }
         }
         closedir(dir);
 
         // Check for removed files
         for (size_t i = 0; i < knownFiles->size; ) {
-            char *knownFile = *(char **)get_from_array(knownFiles, i);
+            Object *knownFile = Array_get(knownFiles, i);
+            const char* knownFileString = knownFile->to_string(knownFile);
 
             // If the file no longer exists, remove it
-            if (access(knownFile, F_OK) != 0) {
-                printf("File removed: %s\n", knownFile);
+            if (access(knownFileString, F_OK) != 0) {
+                printf("File removed: %s\n", knownFileString);
 
                 // Remove words from the dictionary associated with the file
-                remove_words_from_dictionary(knownFile, dictionary);
+                Array_filter(dictionary, cmpSourceFiles, knownFile);
 
                 // Remove from knownFiles
-                remove_from_known_files(i, knownFiles);
+                Array_remove_at(knownFiles, i);
             } else {
                 i++; // Only increment if not removed
             }
@@ -67,85 +72,28 @@ void load_dictionary(const char *folder_path, Array *dictionary, Array *knownFil
         perror("Could not open directory");
         exit(EXIT_FAILURE);
     }
+
+    // const char *dictionaryString = Array_to_string(dictionary);
+    // printf("%s\n", dictionaryString);
+    // printf("\n" );
+    // free((void *)dictionaryString);
 }
 
-// Thread function to periodically load the dictionary
-void *dictionary_loader(void *arg, Array *dictionary, Array *knownFiles) {
-    const char *folder = (const char *)arg;
-    while (1) {
-        load_dictionary(folder, dictionary, knownFiles);  // Load the dictionary
-        sleep(DICT_RELOAD_INTERVAL_SEC);  // Wait for the specified interval
-    }
-    return NULL;  // Not used but required by pthread
+void free_file_path(void *element) {
+    char *filePath = *(char **)element; // Dereference to get the file path pointer
+    free(filePath); // Free the dynamically allocated file path
 }
 
-int is_known_file(const char *filename, Array *knownFiles) {
-    for (size_t i = 0; i < knownFiles->size; i++) {
-        char *knownFile = *(char **)get_from_array(knownFiles, i); // Use pointer dereference correctly
-        if (strcmp(knownFile, filename) == 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
+// void print_dictionary(Array *dictionary) {
+//     for (size_t i = 0; i < dictionary->size; i++) {
+//         WordPair *pair = (WordPair *)get_from_array(dictionary, i);
+//         printf("WordPair %zu: %s -> %s\n", i, pair->english, pair->french);
+//     }
+// }
 
-void add_to_known_files(const char *filename, Array *knownFiles) {
-    char *filePath = strdup(filename);
-    if (!filePath) {
-        perror("Failed to allocate memory for filename");
-        exit(EXIT_FAILURE);
-    }
-    add_to_array(knownFiles, &filePath);
-}
-
-void remove_words_from_dictionary(const char *filepath, Array *dictionary) {
-    for (size_t i = 0; i < dictionary->size; ) {
-        WordPair *pair = (WordPair *)get_from_array(dictionary, i);
-
-        if (strcmp(pair->sourceFile, filepath) == 0) {
-            // Free memory for the word pair
-            // free_wordpair(pair);
-            // Remove the entry from the dictionary
-            remove_from_array(dictionary, i);
-        } else {
-            i++; // Only increment if not removed
-        }
-    }
-}
-
-void remove_from_known_files(size_t index, Array *knownFiles) {
-    if (index >= knownFiles->size) {
-        fprintf(stderr, "Index out of bounds in remove_from_known_files\n");
-        return;
-    }
-
-    // Free the memory for the file path
-    char *filePath = *(char **)get_from_array(knownFiles, index);
-    free(filePath);
-
-    // Remove the entry from the array
-    remove_from_array(knownFiles, index);
-}
-
-// Function to free KnownFiles
-void free_known_files(Array *knownFiles) {
-    for (size_t i = 0; i < knownFiles->size; i++) {
-        char *filePath = *(char **)get_from_array(knownFiles, i);
-        free(filePath);
-    }
-}
-
-void print_dictionary(Array *dictionary) {
-  printf("Printing dict: %d\n", dictionary ? 1:0);
-    for (size_t i = 0; i < dictionary->size; i++) {
-        WordPair *pair = (WordPair *)get_from_array(dictionary, i);
-        printf("WordPair %zu: %s -> %s\n", i, pair->english, pair->french);
-    }
-}
-
-void print_known_files(Array *knownFiles) {
-    for (size_t i = 0; i < knownFiles->size; i++) {
-        char *filePath = *(char **)get_from_array(knownFiles, i);  // Get the file path from the array
-        printf("Known File %zu: %s\n", i, filePath);
-    }
-}
+// void print_known_files(Array *knownFiles) {
+//     for (size_t i = 0; i < knownFiles->size; i++) {
+//         char *filePath = *(char **)get_from_array(knownFiles, i);  // Get the file path from the array
+//         printf("Known File %zu: %s\n", i, filePath);
+//     }
+// }

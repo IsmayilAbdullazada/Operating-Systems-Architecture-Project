@@ -26,7 +26,6 @@ $(SERVER_EXEC): $(SERVER_SRC) $(HEADERS)
 
 # Clean up build files
 clean:
-	@echo "Cleaning up..."
 	rm -f $(CLIENT_EXEC) $(SERVER_EXEC)
 
 # Phony targets

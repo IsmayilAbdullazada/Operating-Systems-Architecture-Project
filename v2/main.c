@@ -3,7 +3,9 @@
 #include <pthread.h>
 #include "shared_memory.h"
 #include "message_queue.h"
-#include "dictionary.h"
+#include "message.h"
+#include "../array.h"
+#include "../wordpair.h"
 #include "translation_writer.c"
 #include "translation_reader.c"
 
@@ -14,7 +16,7 @@ int main() {
 
     pthread_t writer_thread, reader_thread;
 
-    if (pthread_create(&writer_thread, NULL, translation_writer, (void *)"dictionary_folder") != 0) {
+    if (pthread_create(&writer_thread, NULL, translation_writer, (void *)"../dictionary_folder") != 0) {
         perror("Failed to create writer thread");
         return 1;
     }
@@ -23,8 +25,6 @@ int main() {
         perror("Failed to create reader thread");
         return 1;
     }
-
-    printf("Server is running. PID: %d\n", getpid());
 
     pthread_join(writer_thread, NULL);
     pthread_join(reader_thread, NULL);

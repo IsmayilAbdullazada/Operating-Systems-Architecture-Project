@@ -2,12 +2,9 @@
 #define MESSAGE_H
 
 #include <stddef.h>
+#include "../wordpair.h"
 
-// Structure for a WordPair
-typedef struct {
-    char *english;  // Pointer to dynamically allocated English word
-    char *french;   // Pointer to dynamically allocated French word
-} WordPair;
+#define MSG_QUEUE_KEY 5678
 
 // Structure for a message to be sent over the message queue
 typedef struct {

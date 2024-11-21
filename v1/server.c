@@ -17,7 +17,7 @@ volatile sig_atomic_t terminate_flag = 0; // Flag for graceful termination
 
 // Cleanup function
 void cleanup() {
-    printf("Cleaning up resources...\n");
+    printf("\nCleaning up resources...\n");
 
     // Cancel and join the loader thread
     pthread_cancel(loader_thread);
