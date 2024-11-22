@@ -38,6 +38,8 @@ void *reader_thread(void *arg) {
             continue;
         }
 
+        pthread_rwlock_wrlock(&array_rwlock);
+
         // Cast to base structure to determine the signal type
         long signal = ((Add_msg *)message_buffer)->signal;
 
@@ -88,6 +90,8 @@ void *reader_thread(void *arg) {
         } else {
             printf("Unknown signal type: %ld\n", signal);
         }
+
+        pthread_rwlock_unlock(&array_rwlock); // Release the write lock
     }
 
     if (shmdt(shared_array) == -1) {

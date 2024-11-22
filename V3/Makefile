@@ -54,4 +54,4 @@ valgrind: $(SERVER_TARGET)
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(SERVER_TARGET)
 
 valgrind_client: $(CLIENT_TARGET)
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(CLIENT_TARGET)
+	valgrind --suppressions=valgrind.supp --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(CLIENT_TARGET)

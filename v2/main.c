@@ -13,6 +13,8 @@
 #include "shared.h"
 #include <sys/shm.h>
 
+
+pthread_rwlock_t array_rwlock;
 volatile sig_atomic_t terminate_flag = 0;
 
 void handle_signal(int sig) {
@@ -24,6 +26,12 @@ void handle_signal(int sig) {
 
 int main() {
     signal(SIGINT, handle_signal);
+
+
+    if (pthread_rwlock_init(&array_rwlock, NULL) != 0) {
+        perror("pthread_rwlock_init");
+        exit(EXIT_FAILURE);
+    }
 
     pthread_t writer, reader;
 
@@ -62,6 +70,13 @@ int main() {
     if (msgctl(msgid, IPC_RMID, NULL) == -1) {
         perror("msgctl (IPC_RMID)");
     }
+
+
+        // Clean up the read-write lock
+    if (pthread_rwlock_destroy(&array_rwlock) != 0) {
+        perror("pthread_rwlock_destroy");
+    }
+
 
     pthread_join(reader, NULL);
 
