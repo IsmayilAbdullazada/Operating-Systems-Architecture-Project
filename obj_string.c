@@ -5,45 +5,41 @@
 #include <stdlib.h>
 
 void String_free(Object *self) {
-    if (!self) return; // Handle NULL pointer gracefully
-    String *str = (String *)self; // Cast to derived type
+    if (!self) return;
+    String *str = (String *)self;
     if (str->data) {
-        free(str->data); // Free the string data
-        str->data = NULL; // Avoid dangling pointer
+        free(str->data);
+        str->data = NULL;
     }
-    Object_free(self); // Call base free method (frees `self`)
+    Object_free(self);
 }
 
-
-// String-specific to_string method
 const char *String_to_string(Object *self) {
-    String *str = (String *)self; // Cast to derived type
+    String *str = (String *)self;
     return str->data;
 }
 
-// Initialize a String
 void String_init(String *self, const char *data) {
-    Object_init((Object *)self); // Initialize the base object
-    self->base.free = String_free; // Override the free method
-    self->base.to_string = String_to_string; // Override the to_string method
-    self->base.equal = String_equal; // Override the equal method
-    self->data = NULL; // Initialize the data pointer
+    Object_init((Object *)self);
+    self->base.free = String_free;
+    self->base.to_string = String_to_string;
+    self->base.equal = String_equal;
+    self->data = NULL;
 
-    self->data = strdup(data); // Copy the string
+    self->data = strdup(data);
     if (!self->data) {
         perror("Failed to allocate memory for String");
         exit(EXIT_FAILURE);
     }
 }
 
-// String-specific new method
 String *String_new(const char *data) {
     String *str = (String *)malloc(sizeof(String));
     if (!str) {
         perror("Failed to allocate memory for String");
         exit(EXIT_FAILURE);
     }
-    String_init(str, data); // Initialize the object
+    String_init(str, data);
     return str;
 }
 

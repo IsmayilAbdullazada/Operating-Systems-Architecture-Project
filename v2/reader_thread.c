@@ -10,13 +10,11 @@
 #include "reader_thread.h"
 #include <pthread.h>
 
-
 void *reader_thread(void *arg) {
     ThreadArgs *args = (ThreadArgs *)arg;
-    int msgid = args->msgid; // Message queue ID
-    int shmid = args->shmid; // Shared memory ID
+    int msgid = args->msgid;
+    int shmid = args->shmid;
 
-    // Attach to shared memory
     SharedArray *shared_array = (SharedArray *)shmat(shmid, NULL, 0);
     if (shared_array == (SharedArray *)-1) {
         perror("shmat");
@@ -24,7 +22,7 @@ void *reader_thread(void *arg) {
     }
 
     shared_array->size = 0;
-    shared_array->capacity = ARRAY_CAPACITY; // Initialize capacity
+    shared_array->capacity = ARRAY_CAPACITY;
 
     printf("Reader thread started. Waiting for messages...\n");
 
@@ -32,7 +30,6 @@ void *reader_thread(void *arg) {
         // Use a buffer to handle messages of different types
         char message_buffer[sizeof(Delete_msg) > sizeof(Add_msg) ? sizeof(Delete_msg) : sizeof(Add_msg)];
 
-        // Receive a message from the queue
         if (msgrcv(msgid, &message_buffer, sizeof(message_buffer) - sizeof(long), 0, 0) == -1) {
             if (terminate_flag)
                 break;
@@ -59,10 +56,10 @@ void *reader_thread(void *arg) {
                     strncpy(pair->english, add_msg->word2, WORD_MAX_LENGTH - 1);
                 }
 
-                pair->english[WORD_MAX_LENGTH - 1] = '\0'; // Ensure null-terminated
-                pair->french[WORD_MAX_LENGTH - 1] = '\0'; // Ensure null-terminated
+                pair->english[WORD_MAX_LENGTH - 1] = '\0';
+                pair->french[WORD_MAX_LENGTH - 1] = '\0';
                 strncpy(pair->filename, add_msg->filename, 255);
-                pair->filename[255] = '\0'; // Ensure null-terminated
+                pair->filename[255] = '\0';
 
                 shared_array->size++;
                 printf("Added word pair: English: %s, French: %s, File: %s\n", pair->english, pair->french, pair->filename);
@@ -75,13 +72,12 @@ void *reader_thread(void *arg) {
             Delete_msg *delete_msg = (Delete_msg *)message_buffer;
             printf("Delete request received for file: %s\n", delete_msg->filename);
 
-            // Process deletion from the shared array
+            // Pair deletion from the shared array
             for (size_t i = 0; i < shared_array->size; ) {
                 WordPair_shared *pair = &shared_array->array[i];
                 if (strcmp(pair->filename, delete_msg->filename) == 0) {
                     printf("Deleting word pair: English: %s, French: %s\n", pair->english, pair->french);
 
-                    // Shift elements to overwrite the deleted pair
                     memmove(pair, pair + 1, (shared_array->size - i - 1) * sizeof(WordPair_shared));
                     shared_array->size--;
                 } else {
@@ -94,7 +90,6 @@ void *reader_thread(void *arg) {
         }
     }
 
-    // Detach from shared memory
     if (shmdt(shared_array) == -1) {
         perror("shmdt");
     }

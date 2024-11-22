@@ -14,4 +14,4 @@ void Object_free(Object *self);
 const char *Object_to_string(Object *self);
 int Object_equal(const Object *self, const Object *other);
 
-#endif // OBJECT_H
+#endif

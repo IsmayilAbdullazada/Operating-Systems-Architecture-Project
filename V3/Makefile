@@ -1,9 +1,7 @@
-# Compiler and flags
 CC = gcc
 CFLAGS = -Wall -Wextra -g -pthread
 
-# Source files
-SRCS = server.c \
+SERVER_SRCS = server.c \
        ../array.c \
        ../dictionary_loader.c \
        ../obj_string.c \
@@ -12,44 +10,48 @@ SRCS = server.c \
        writer_thread.o \
        reader_thread.o
 
-# Object files
-OBJS = $(SRCS:.c=.o)
+CLIENT_SRCS = client.c
 
-# Header files
-HEADERS = ../array.h ../dictionary_loader.h ../obj_string.h ../object.h ../wordpair.h \
+SERVER_OBJS = $(SERVER_SRCS:.c=.o)
+CLIENT_OBJS = $(CLIENT_SRCS:.c=.o)
+
+HEADERS = ../array.h ../obj_string.h ../object.h ../wordpair.h \
           ../v2/writer_thread.h ../v2/reader_thread.h ../v2/shared.h ../v2/shared_array.h
 
-# Output executable
-TARGET = server
+SERVER_TARGET = server
+CLIENT_TARGET = client
 
 export DICTIONARY_FOLDER=../dictionary_folder
 
-# Default target
-all: $(TARGET)
+all: $(SERVER_TARGET) $(CLIENT_TARGET)
 
-# Build the main executable
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+$(SERVER_TARGET): $(SERVER_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(SERVER_OBJS)
 
-# Compile .c source files into object files
+$(CLIENT_TARGET): $(CLIENT_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJS)
+
 %.o: %.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Pre-compiled writer_thread.o and reader_thread.o
 writer_thread.o: ../v2/writer_thread.c ../v2/writer_thread.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 reader_thread.o: ../v2/reader_thread.c ../v2/reader_thread.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean up build files
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(SERVER_OBJS) $(CLIENT_OBJS) $(SERVER_TARGET) $(CLIENT_TARGET)
 
-# Run the program
-run: $(TARGET)
-	./$(TARGET)
+run: $(SERVER_TARGET)
+	./$(SERVER_TARGET)
 
-# Run the program with Valgrind
-valgrind: $(TARGET)
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET)
+run_client: $(CLIENT_TARGET)
+	@echo "Please enter the server PID to send signals:"
+	@read pid; ./$(CLIENT_TARGET) $$pid
+
+valgrind: $(SERVER_TARGET)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(SERVER_TARGET)
+
+valgrind_client: $(CLIENT_TARGET)
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(CLIENT_TARGET)

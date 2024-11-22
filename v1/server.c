@@ -1,6 +1,6 @@
-#include "../dictionary_loader.h" // For loading and managing dictionary files
-#include "../array.h"            // Dynamic array implementation
-#include "../wordpair.h"         // WordPair management
+#include "../dictionary_loader.h"
+#include "../array.h"
+#include "../wordpair.h"
 #include <signal.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -8,32 +8,28 @@
 #include <unistd.h>
 #include <time.h>
 
-#define DICTIONARY_FOLDER "../dictionary_folder" // Path to the dictionary folder
+#define DICTIONARY_FOLDER "../dictionary_folder"
 
-Array* dictionary;  // Resizable array for WordPairs
-Array* knownFiles;  // Resizable array for file paths
+Array* dictionary;
+Array* knownFiles;
 pthread_t loader_thread;
-volatile sig_atomic_t terminate_flag = 0; // Flag for graceful termination
+volatile sig_atomic_t terminate_flag = 0; // Flag for CTRL C termination
 
-// Cleanup function
 void cleanup() {
     printf("\nCleaning up resources...\n");
 
-    // Cancel and join the loader thread
     pthread_cancel(loader_thread);
     pthread_join(loader_thread, NULL);
 
-    // Free the dictionary and known files
     Array_free(dictionary);
     Array_free(knownFiles);
 
     printf("Resources cleaned up. Exiting program.\n");
 }
 
-// Signal handler for random WordPair translation and termination
 void handle_signal(int sig) {
     if (sig == SIGINT) {
-        terminate_flag = 1; // Set termination flag for cleanup
+        terminate_flag = 1;
         return;
     }
 
@@ -52,34 +48,29 @@ void handle_signal(int sig) {
     }
 }
 
-// Thread function for periodic dictionary loading
 void *loader_thread_func(void *arg) {
     const char *folder = (const char *)arg;
     while (1) {
-        load_dictionary(folder, dictionary, knownFiles); // Use dictionary_loader function
-        sleep(DICT_RELOAD_INTERVAL_SEC);  // Wait for the specified interval
-        pthread_testcancel(); // Allow thread cancellation at this point
+        load_dictionary(folder, dictionary, knownFiles);
+        sleep(DICT_RELOAD_INTERVAL_SEC);
+        pthread_testcancel();
     }
 
     return NULL;
 }
 
 int main() {
-    dictionary = Array_new(10); // Initialize the dictionary array
-    knownFiles = Array_new(10); // Initialize the known files array
-
-
+    dictionary = Array_new(10);
+    knownFiles = Array_new(10);
 
     printf("Process ID: %d\n", getpid());
-    srand(time(NULL)); // Seed the random number generator
+    srand(time(NULL));
 
-    // Create a thread for the dictionary loader
     if (pthread_create(&loader_thread, NULL, loader_thread_func, (void *)DICTIONARY_FOLDER) != 0) {
         perror("Failed to create dictionary loader thread");
         return 1;
     }
 
-    // Set up signal handlers
     signal(SIGUSR1, handle_signal);
     signal(SIGUSR2, handle_signal);
     signal(SIGINT, handle_signal); // Handle Ctrl+C (SIGINT) for cleanup
@@ -89,7 +80,6 @@ int main() {
         pause();
     }
 
-    // Perform cleanup
     cleanup();
 
     return 0;

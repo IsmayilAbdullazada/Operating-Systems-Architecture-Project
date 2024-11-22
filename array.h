@@ -6,15 +6,13 @@
 #include <stdio.h>
 #include "object.h"
 
-// Define the Array structure
 typedef struct Array {
-    Object base;                // Base Object
-    Object **data;                  // Pointer to the data array
-    size_t size;                 // Current number of elements
-    size_t capacity;             // Maximum number of elements the array can hold
+    Object base;
+    Object **data;
+    size_t size;
+    size_t capacity;
 } Array;
 
-// Function declarations
 void Array_init(Array *arr, size_t initial_capacity);
 Array *Array_new(size_t initial_capacity);
 void Array_free(Array *arr);
@@ -27,4 +25,4 @@ void Array_print(Array *arr);
 const char *Array_to_string(Array *arr);
 int Array_in(Array *arr, Object *element);
 
-#endif // GENERIC_ARRAY_H
+#endif

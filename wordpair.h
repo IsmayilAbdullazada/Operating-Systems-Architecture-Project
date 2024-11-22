@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include "array.h"
 
-// WordPair structure for storing English-French word pairs
 typedef struct {
-    Object base;    // Base Object
-    char *english; // Dynamically allocated string for English word
-    char *french;  // Dynamically allocated string for French word
-    char *sourceFile;  // Dynamically allocated string for source file path
+    Object base;
+    char *english;
+    char *french;
+    char *sourceFile;
 } WordPair;
 
 void WordPair_init(WordPair *self, const char *english, const char *french, const char *sourceFile);

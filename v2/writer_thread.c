@@ -13,15 +13,6 @@
 #include <unistd.h>
 #include "shared.h"
 
-// typedef struct {
-//     long signal;          // Message type
-//     char word1[50];       // Word1
-//     char word2[50];       // Word2
-//     char file[256];       // File name
-//     char action[10];      // Action type ("ADD" or "REMOVE")
-// } Message;
-
-// Helper function to send a message to the queue
 void send_add_message(int msgid, const char *word1, const char *word2, const char *file, long signal) {
     Add_msg  message = {0};
     message.signal = signal;
@@ -44,25 +35,18 @@ void send_remove_message(int msgid, const char *file, long signal) {
     }
 }
 
-
-// Function to process a single added file
 void process_added_file(int msgid, Array *dictionary, Array *knownFiles, const char *fileStr) {
     String *newFile = String_new(fileStr);
-    // Add the file to knownFiles
     Array_add(knownFiles, (Object *)newFile);
 
-    // Load new word pairs from the file
-    Array *filePairs = Array_new(10); // Temporary storage for word pairs
+    Array *filePairs = Array_new(10);
     load_file(fileStr, filePairs);
 
-    // Add new word pairs to the dictionary and send "ADD" messages
     for (size_t i = 0; i < filePairs->size; i++) {
         WordPair *pair = (WordPair *)Array_get(filePairs, i);
 
-        // Add the word pair to the dictionary
         Array_add(dictionary, (Object *)pair);
 
-        // Determine translation direction
         long signal = 0;
         if (strncmp(pair->sourceFile, "eng_to_fr", 9) == 0) {
             signal = ENG_TO_FR_SIGNAL;
@@ -73,7 +57,6 @@ void process_added_file(int msgid, Array *dictionary, Array *knownFiles, const c
             continue;
         }
 
-        // Send an "ADD" message for the word pair
         send_add_message(msgid, pair->english, pair->french, pair->sourceFile, signal);
     }
 
@@ -81,20 +64,13 @@ void process_added_file(int msgid, Array *dictionary, Array *knownFiles, const c
 
 }
 
-// Function to process a single removed file
 void process_removed_file(int msgid, Array *dictionary, const char *filePath) {
-    // Send "REMOVE" messages for word pairs in the removed file
     Array_filter(dictionary, cmpSourceFiles, filePath);
-
-    // Send a "REMOVE" message for the file
     send_remove_message(msgid, filePath, DELETE_MSG_SIGNAL);
 }
 
-
-
-
 void *writer_thread(void *arg) {
-    int msgid = *(int *)arg; // Message queue ID passed from main
+    int msgid = *(int *)arg;
 
     // Get folder path from environment variable
     char *folder_path = getenv("DICTIONARY_FOLDER");
@@ -110,7 +86,6 @@ void *writer_thread(void *arg) {
         pthread_exit(NULL);
     }
 
-    // Initialize the dictionary and known files arrays
     Array *dictionary = Array_new(10);
     Array *knownFiles = Array_new(10);
     while (!terminate_flag) {
@@ -125,11 +100,9 @@ void *writer_thread(void *arg) {
                 const char *knownFile = knownFileString->to_string(knownFileString);
 
                 if (access(knownFile, F_OK) != 0) {
-                    // Process removed file immediately
                     printf("File removed: %s\n", knownFile);
                     process_removed_file(msgid, dictionary, knownFile);
 
-                    // Remove the file from knownFiles
                     Array_remove_at(knownFiles, i);
                 } else {
                     i++;
@@ -140,13 +113,9 @@ void *writer_thread(void *arg) {
             while ((ent = readdir(dir)) != NULL) {
                 if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
 
-                // char filepath[PATH_MAX];
-                // snprintf(filepath, PATH_MAX, "%s/%s", folder_path, ent->d_name);
-
                 String *fileStr = String_new(ent->d_name);
 
                 if (!Array_in(knownFiles, (Object *)fileStr)) {
-                    // Process new file immediately
                     printf("New file detected: %s\n", ent->d_name);
 
                      if (!(strncmp(ent->d_name, "eng_to_fr", 9) == 0 || strncmp(ent->d_name, "fr_to_eng", 9) == 0)) {
@@ -155,8 +124,7 @@ void *writer_thread(void *arg) {
                         process_added_file(msgid, dictionary, knownFiles, ent->d_name);
                      }
 
-                } 
-                    // Free temporary file string object
+                }
                 String_free((Object *)fileStr);
                 
             }
@@ -171,7 +139,6 @@ void *writer_thread(void *arg) {
         sleep(DICT_RELOAD_INTERVAL_SEC); // Periodic check for changes
     }
 
-    // Cleanup
     Array_free(dictionary);
     Array_free(knownFiles);
 

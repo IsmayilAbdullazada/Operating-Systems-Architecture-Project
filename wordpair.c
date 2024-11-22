@@ -4,10 +4,8 @@
 #include "object.h"
 #include "obj_string.h"
 
-
-// WordPair-specific to_string method
 const char *WordPair_to_string(Object *self) {
-    WordPair *wp = (WordPair *)self; // Cast to derived type
+    WordPair *wp = (WordPair *)self;
     static char buffer[256];
     
     snprintf(buffer, sizeof(buffer), "{English: \"%s\", French: \"%s\", SourceFile: \"%s\"}",
@@ -17,10 +15,10 @@ const char *WordPair_to_string(Object *self) {
 
 // Initialize a WordPair
 void WordPair_init(WordPair *self, const char *english, const char *french, const char *sourceFile) {
-    Object_init((Object *)self);           // Initialize the base object
-    self->base.free = WordPair_free;       // Override the free method
-    self->base.to_string = WordPair_to_string; // Override the to_string method
-    self->english = strdup(english);      // Copy strings
+    Object_init((Object *)self);
+    self->base.free = WordPair_free;
+    self->base.to_string = WordPair_to_string;
+    self->english = strdup(english);
     self->french = strdup(french);
     self->sourceFile = strdup(sourceFile);
 
@@ -30,24 +28,21 @@ void WordPair_init(WordPair *self, const char *english, const char *french, cons
     }
 }
 
-// WordPair-specific free method
 void WordPair_free(Object *self) {
-    WordPair *wp = (WordPair *)self; // Cast to derived type
+    WordPair *wp = (WordPair *)self;
     free(wp->english);
     free(wp->french);
     free(wp->sourceFile);
-    Object_free(self); // Call base free method
+    Object_free(self);
 }
 
-
-// WordPair-specific new method
 WordPair *WordPair_new(const char *english, const char *french, const char *sourceFile) {
     WordPair *wp = (WordPair *)malloc(sizeof(WordPair));
     if (!wp) {
         perror("Failed to allocate memory for WordPair");
         exit(EXIT_FAILURE);
     }
-    WordPair_init(wp, english, french, sourceFile); // Initialize the object
+    WordPair_init(wp, english, french, sourceFile);
     return wp;
 }
 
