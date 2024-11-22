@@ -1,6 +1,6 @@
 #include "../dictionary_loader.h"
-#include "../array.h"
-#include "../wordpair.h"
+#include "../objects/array.h"
+#include "../objects/wordpair.h"
 #include <signal.h>
 #include <pthread.h>
 #include <stdio.h>

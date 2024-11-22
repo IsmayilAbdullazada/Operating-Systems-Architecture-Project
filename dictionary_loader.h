@@ -1,8 +1,8 @@
 #ifndef DICTIONARY_LOADER_H
 #define DICTIONARY_LOADER_H
 
-#include "array.h"
-#include "wordpair.h"
+#include "./objects/array.h"
+#include "./objects/wordpair.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX 1012

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "obj_string.h"
+#include "./objects/obj_string.h"
 
 void load_file(const char *filepath, Array *dictionary) {
     FILE *file = fopen(filepath, "r");

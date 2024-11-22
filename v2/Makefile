@@ -1,11 +1,11 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -lpthread
 
-SRCS = main.c reader_thread.c writer_thread.c ../array.c ../obj_string.c ../dictionary_loader.c ../wordpair.c ../object.c
+SRCS = main.c reader_thread.c writer_thread.c ../objects/array.c ../objects/obj_string.c ../dictionary_loader.c ../objects/wordpair.c ../objects/object.c
 
 OBJS = $(SRCS:.c=.o)
 
-HEADERS = reader_thread.h writer_thread.h shared.h message.h shared_array.h ../array.h ../obj_string.h ../dictionary_loader.h ../wordpair.h ../object.h
+HEADERS = reader_thread.h writer_thread.h shared.h message.h shared_array.h ../objects/array.h ../objects/obj_string.h ../dictionary_loader.h ../objects/wordpair.h ../objects/object.h
 
 TARGET = main
 

@@ -2,11 +2,11 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g -pthread
 
 SERVER_SRCS = server.c \
-       ../array.c \
+       ../objects/array.c \
        ../dictionary_loader.c \
-       ../obj_string.c \
-       ../object.c \
-       ../wordpair.c \
+       ../objects/obj_string.c \
+       ../objects/object.c \
+       ../objects/wordpair.c \
        writer_thread.o \
        reader_thread.o
 
@@ -15,7 +15,7 @@ CLIENT_SRCS = client.c
 SERVER_OBJS = $(SERVER_SRCS:.c=.o)
 CLIENT_OBJS = $(CLIENT_SRCS:.c=.o)
 
-HEADERS = ../array.h ../obj_string.h ../object.h ../wordpair.h \
+HEADERS = ../objects/array.h ../objects/obj_string.h ../objects/object.h ../objects/wordpair.h \
           ../v2/writer_thread.h ../v2/reader_thread.h ../v2/shared.h ../v2/shared_array.h
 
 SERVER_TARGET = server

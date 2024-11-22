@@ -5,9 +5,9 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <dirent.h>
-#include "../array.h"
-#include "../wordpair.h"
-#include "../obj_string.h"
+#include "../objects/array.h"
+#include "../objects/wordpair.h"
+#include "../objects/obj_string.h"
 #include "../dictionary_loader.h"
 #include "message.h"
 #include <unistd.h>

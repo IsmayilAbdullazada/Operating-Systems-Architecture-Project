@@ -2,9 +2,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g -lpthread
 
 CLIENT_SRC = client.c
-SERVER_SRC = server.c ../array.c ../dictionary_loader.c ../wordpair.c ../object.c ../obj_string.c
+SERVER_SRC = server.c ../objects/array.c ../dictionary_loader.c ../objects/wordpair.c ../objects/object.c ../objects/obj_string.c
 
-HEADERS = ../array.h ../dictionary_loader.h ../wordpair.h  ../object.h ../obj_string.h
+HEADERS = ../objects/array.h ../dictionary_loader.h ../objects/wordpair.h ../objects/object.h ../objects/obj_string.h
 
 CLIENT_EXEC = client
 SERVER_EXEC = server
@@ -15,9 +15,15 @@ $(CLIENT_EXEC): $(CLIENT_SRC) $(HEADERS)
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(SERVER_EXEC): $(SERVER_SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(SERVER_SRC) 
+	$(CC) $(CFLAGS) -o $@ $(SERVER_SRC)
 
 clean:
 	rm -f $(CLIENT_EXEC) $(SERVER_EXEC)
 
-.PHONY: all clean
+valgrind-client: $(CLIENT_EXEC)
+	valgrind --leak-check=full --track-origins=yes ./$(CLIENT_EXEC)
+
+valgrind-server: $(SERVER_EXEC)
+	valgrind --leak-check=full --track-origins=yes ./$(SERVER_EXEC)
+
+.PHONY: all clean valgrind-client valgrind-server
